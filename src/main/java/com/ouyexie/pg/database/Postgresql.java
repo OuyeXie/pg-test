@@ -1,13 +1,16 @@
 package com.ouyexie.pg.database;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ouyexie.pg.data.Column;
 import com.ouyexie.pg.exception.BusinessException;
 import com.ouyexie.pg.log4j.MyLogger;
 import com.ouyexie.pg.log4j.MyLoggerFactory;
 import com.ouyexie.pg.utils.Constant;
-import com.ouyexie.pg.utils.GlobalConfig;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,11 +25,10 @@ public class Postgresql {
     private Connection m_conn_transaction;
 
     private String m_table_investors;
-    private String m_table_investors_relation;
 
     private Postgresql(Map<String, String> configMap) throws BusinessException {
-        String host = GlobalConfig.DEBUGMODE ? configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST_TEST) : configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST);
-        String port = GlobalConfig.DEBUGMODE ? configMap.get(Constant.Config.PARAM_POSTGRESQL_PORT_TEST) : configMap.get(Constant.Config.PARAM_POSTGRESQL_PORT);
+        String host = configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST);
+        String port = configMap.get(Constant.Config.PARAM_POSTGRESQL_PORT);
         String database = configMap.get(Constant.Config.PARAM_POSTGRESQL_DATABASE);
         String user = configMap.get(Constant.Config.PARAM_POSTGRESQL_USER);
         String password = configMap.get(Constant.Config.PARAM_POSTGRESQL_PASSWORD);
@@ -46,7 +48,6 @@ public class Postgresql {
         }
 
         m_table_investors = configMap.get(Constant.Config.PARAM_POSTGRESQL_TABLE_INVESTORS);
-        m_table_investors_relation = configMap.get(Constant.Config.PARAM_POSTGRESQL_TABLE_INVESTORS_RELATION);
     }
 
     public static Postgresql getInstance() {
@@ -77,10 +78,6 @@ public class Postgresql {
 
     public String getTableTnvestors() {
         return m_table_investors;
-    }
-
-    public String getTableTnvestorsRelation() {
-        return m_table_investors_relation;
     }
 
     public void close() {

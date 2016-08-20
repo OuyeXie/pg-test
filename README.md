@@ -1,5 +1,9 @@
 # Who am I 
 
+# Junit
+
+mvn test
+
 # How to run
 
 mvn clean package
