@@ -6,6 +6,20 @@ mvn test
 
 # How to run
 
+## config
+
+add following attributes and correct values in to a file called config.properties under route resources
+
+<pre>
+<code>
+param.postgresql.host=xxx
+param.postgresql.port=xxx
+param.postgresql.database=xxx
+param.postgresql.user=xxx
+param.postgresql.password=xxx
+</code>
+</pre>
+
 mvn clean package
 mvn jetty:run
 

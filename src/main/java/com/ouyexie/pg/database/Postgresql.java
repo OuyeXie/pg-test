@@ -24,8 +24,6 @@ public class Postgresql {
     private Connection m_conn;
     private Connection m_conn_transaction;
 
-    private String m_table_investors;
-
     private Postgresql(Map<String, String> configMap) throws BusinessException {
         String host = configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST);
         String port = configMap.get(Constant.Config.PARAM_POSTGRESQL_PORT);
@@ -46,8 +44,6 @@ public class Postgresql {
         } catch (Exception e) {
             LOG.error(e);
         }
-
-        m_table_investors = configMap.get(Constant.Config.PARAM_POSTGRESQL_TABLE_INVESTORS);
     }
 
     public static Postgresql getInstance() {
@@ -74,10 +70,6 @@ public class Postgresql {
 
     public Connection getConnectionTransaction() {
         return m_conn_transaction;
-    }
-
-    public String getTableTnvestors() {
-        return m_table_investors;
     }
 
     public void close() {
