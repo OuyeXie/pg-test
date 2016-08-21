@@ -49,6 +49,7 @@ public class PgService {
     @Produces(MediaType.APPLICATION_JSON)
     public String table(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader, @Context HttpServletResponse response) {
         String info = null;
+        boolean rangeOn = false;
         int offset = 0;
         int limit = Integer.MAX_VALUE;
         int len = 0;
@@ -69,6 +70,7 @@ public class PgService {
                             limit = Integer.parseInt(ranges[1]) + 1;
                         }
                         len = limit - offset;
+                        rangeOn = true;
                     }
                 }
             } catch (Exception e) {
@@ -82,14 +84,16 @@ public class PgService {
 
             List<Map<String, String>> results = Logic.select(table, queryParams);
             lenActul = results.size();
-            if (offset >= lenActul) {
-                results.clear();
-            } else {
-                if (lenActul > len) {
-                    results = results.subList(offset, limit);
-                    lenActul = len;
+            if (rangeOn) {
+                if (offset >= lenActul) {
+                    results.clear();
                 } else {
-                    limit = lenActul + offset - 1;
+                    if (lenActul > len) {
+                        results = results.subList(offset, limit);
+                        lenActul = len;
+                    } else {
+                        limit = lenActul + offset - 1;
+                    }
                 }
             }
             info = mapper.writeValueAsString(results);
@@ -99,7 +103,9 @@ public class PgService {
             LOG.error(e.getDetailedMessage());
             info = e.getMessage();
         }
-        response.setHeader("Content-Range", String.format("%d-%d/%d", offset, limit - 1, lenActul));
+        if (rangeOn) {
+            response.setHeader("Content-Range", String.format("%d-%d/%d", offset, limit - 1, lenActul));
+        }
         System.out.println(response.getHeader("Content-Range"));
         return info;
     }

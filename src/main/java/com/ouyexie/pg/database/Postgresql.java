@@ -20,7 +20,6 @@ public class Postgresql {
     private String url;
     private String user;
     private String password;
-    private String m_table_investors;
 
     private Postgresql(Map<String, String> configMap) throws BusinessException {
         String host = configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST);
@@ -34,8 +33,6 @@ public class Postgresql {
         this.url = url;
         this.user = user;
         this.password = password;
-
-        m_table_investors = configMap.get(Constant.Config.PARAM_POSTGRESQL_TABLE_INVESTORS);
     }
 
     public static Postgresql getInstance() {
@@ -80,9 +77,5 @@ public class Postgresql {
             LOG.error(e);
         }
         return conn;
-    }
-
-    public String getTableTnvestors() {
-        return m_table_investors;
     }
 }

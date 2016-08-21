@@ -43,7 +43,6 @@ public class Constant {
         String PARAM_POSTGRESQL_USER = "param.postgresql.user";
         String PARAM_POSTGRESQL_PASSWORD = "param.postgresql.password";
         String PARAM_POSTGRESQL_DATABASE = "param.postgresql.database";
-        String PARAM_POSTGRESQL_TABLE_INVESTORS = "param.postgresql.table.investors";
     }
 
     public interface Setting {
