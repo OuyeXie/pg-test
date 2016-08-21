@@ -59,4 +59,10 @@ public class Item implements Serializable {
     public int hashCode() {
         return 41 ^ 3 * (name == null ? 0 : name.hashCode()) + 41 ^ 2 * (type == null ? 0 : type.hashCode()) + 41 * (value == null ? 0 : value.hashCode());
     }
+
+//    @Override
+//    public String toString() {
+//        return String.format("{%s: %s}", name, value);
+//    }
+
 }
