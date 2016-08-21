@@ -1,2 +1,19 @@
 1.0
-    14/08/2012 First commit, init project, init jersey
+    14/08/2016 First commit, init project, init jersey
+1.1
+    21/08/2016 Current Support
+        INPUT
+            GET
+                select
+                select from json
+                order
+                limit
+                offset
+                limit in Header
+                opterators
+                    eq, neq, lt, lte, gt, gte
+                    is, isnot
+            OPTIONS
+                table
+                database
+        OUTPUT in json

@@ -1,16 +1,12 @@
 package com.ouyexie.pg.database;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ouyexie.pg.data.Column;
 import com.ouyexie.pg.exception.BusinessException;
 import com.ouyexie.pg.log4j.MyLogger;
 import com.ouyexie.pg.log4j.MyLoggerFactory;
 import com.ouyexie.pg.utils.Constant;
 
-import java.sql.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.Map;
 
 /**
@@ -21,8 +17,10 @@ public class Postgresql {
 
     private static Postgresql m_instance;
 
-    private Connection m_conn;
-    private Connection m_conn_transaction;
+    private String url;
+    private String user;
+    private String password;
+    private String m_table_investors;
 
     private Postgresql(Map<String, String> configMap) throws BusinessException {
         String host = configMap.get(Constant.Config.PARAM_POSTGRESQL_HOST);
@@ -33,17 +31,11 @@ public class Postgresql {
 
         String url = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
 
-        try {
-            Class.forName("org.postgresql.Driver");
-            m_conn = DriverManager.getConnection(url, user, password);
-            // if autocommit is off, it means transaction is triggered
-            m_conn.setAutoCommit(true);
-            m_conn_transaction = DriverManager.getConnection(url, user, password);
-            // if autocommit is off, it means transaction is triggered
-            m_conn_transaction.setAutoCommit(false);
-        } catch (Exception e) {
-            LOG.error(e);
-        }
+        this.url = url;
+        this.user = user;
+        this.password = password;
+
+        m_table_investors = configMap.get(Constant.Config.PARAM_POSTGRESQL_TABLE_INVESTORS);
     }
 
     public static Postgresql getInstance() {
@@ -65,20 +57,32 @@ public class Postgresql {
     }
 
     public Connection getConnection() {
-        return m_conn;
-    }
-
-    public Connection getConnectionTransaction() {
-        return m_conn_transaction;
-    }
-
-    public void close() {
+        Connection conn = null;
         try {
-            m_conn.close();
-            m_conn_transaction.close();
-            m_instance = null;
+            Class.forName("org.postgresql.Driver");
+            conn = DriverManager.getConnection(url, user, password);
+            // if autocommit is off, it means transaction is triggered
+            conn.setAutoCommit(true);
         } catch (Exception e) {
             LOG.error(e);
         }
+        return conn;
+    }
+
+    public Connection getConnectionTransaction() {
+        Connection conn = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            conn = DriverManager.getConnection(url, user, password);
+            // if autocommit is off, it means transaction is triggered
+            conn.setAutoCommit(false);
+        } catch (Exception e) {
+            LOG.error(e);
+        }
+        return conn;
+    }
+
+    public String getTableTnvestors() {
+        return m_table_investors;
     }
 }

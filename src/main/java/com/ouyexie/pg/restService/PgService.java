@@ -1,15 +1,19 @@
 package com.ouyexie.pg.restService;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ouyexie.pg.exception.BusinessException;
+import com.ouyexie.pg.exception.HeaderException;
 import com.ouyexie.pg.log4j.MyLogger;
 import com.ouyexie.pg.log4j.MyLoggerFactory;
 import com.ouyexie.pg.logic.Logic;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by ouyexie on 8/14/16.
@@ -18,6 +22,7 @@ import javax.ws.rs.core.UriInfo;
 public class PgService {
     public static final String PONG = "Pong!";
     private static final MyLogger LOG = MyLoggerFactory.getLogger(PgService.class);
+    private static ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent to
@@ -42,19 +47,60 @@ public class PgService {
     @GET
     @Path("{table}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String table(@Context UriInfo uriInfo) {
-        MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
-        String table = pathParams.getFirst("table");
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        LOG.debug(String.format("select query, pathParams: [%s], queryParams: [%s]", pathParams.toString(), queryParams.toString()));
+    public String table(@Context UriInfo uriInfo, @Context HttpHeaders httpHeader, @Context HttpServletResponse response) {
         String info = null;
+        int offset = 0;
+        int limit = Integer.MAX_VALUE;
+        int len = 0;
+        int lenActul = 0;
         try {
-            info = Logic.select(table, queryParams);
+            try {
+                MultivaluedMap<String, String> headers = httpHeader.getRequestHeaders();
+                Iterator<String> iterator = headers.keySet().iterator();
+                while (iterator.hasNext()) {
+                    String headName = iterator.next();
+                    if (headName.equals("Range")) {
+                        String range = headers.get(headName).get(0);
+                        String[] ranges = range.split("-");
+                        if (ranges.length > 0) {
+                            offset = Integer.parseInt(ranges[0]);
+                        }
+                        if (ranges.length > 1) {
+                            limit = Integer.parseInt(ranges[1]) + 1;
+                        }
+                        len = limit - offset;
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error(e);
+                throw new HeaderException();
+            }
+            MultivaluedMap<String, String> pathParams = uriInfo.getPathParameters();
+            String table = pathParams.getFirst("table");
+            MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+            LOG.debug(String.format("select query, pathParams: [%s], queryParams: [%s]", pathParams.toString(), queryParams.toString()));
+
+            List<Map<String, String>> results = Logic.select(table, queryParams);
+            lenActul = results.size();
+            if (offset >= lenActul) {
+                results.clear();
+            } else {
+                if (lenActul > len) {
+                    results = results.subList(offset, limit);
+                    lenActul = len;
+                } else {
+                    limit = lenActul + offset - 1;
+                }
+            }
+            info = mapper.writeValueAsString(results);
+        } catch (JsonProcessingException e) {
+            LOG.error(e);
         } catch (BusinessException e) {
             LOG.error(e.getDetailedMessage());
             info = e.getMessage();
         }
-
+        response.setHeader("Content-Range", String.format("%d-%d/%d", offset, limit - 1, lenActul));
+        System.out.println(response.getHeader("Content-Range"));
         return info;
     }
 
